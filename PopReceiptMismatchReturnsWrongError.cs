@@ -23,6 +23,9 @@ namespace AzureQueueIssues
 		const string Code_PopReceiptMismatchMessage = "PopReceiptMismatch";
 		const string Code_InvalidQueryParameterValue = "InvalidQueryParameterValue";
 
+        //const string TargetApiVersion = "2012-02-12";
+        const string TargetApiVersion = "2014-02-14";
+
 		const HttpStatusCode Status_SuccessfulUpdate = HttpStatusCode.NoContent;
 
 		private CloudStorageAccount _account;
@@ -336,7 +339,7 @@ namespace AzureQueueIssues
 			var request = HttpWebRequest.CreateHttp(url);
 			request.Method = "PUT";
 			request.ContentLength = 0;
-			request.Headers.Add("x-ms-version", "2012-02-12");
+			request.Headers.Add("x-ms-version", TargetApiVersion);
 			request.Headers.Add("x-ms-date", DateTime.UtcNow.ToString("R", CultureInfo.InvariantCulture));
 			request.Headers.Add("Authorization", "SharedKey " + account.Credentials.AccountName + ":"
 				+ SharedKeyFor(request, account.Credentials.AccountName, account.Credentials.ExportKey(), queueName, messageId, queryStringValues));
