@@ -10,7 +10,7 @@ namespace AzureQueueIssues
 {
     public static class SharedKey
     {
-        public static string Get(HttpWebRequest request, string accountName, byte[] accountKey, Dictionary<string, string> queryStringArgs)
+        public static string Get(HttpWebRequest request, string accountName, byte[] accountKey, Dictionary<string, string> queryStringArgs, string contentLengthOverride = "")
         {
             var canonicalizedHeaders = request.Headers.AllKeys
                                                       .Where(k => k.StartsWith("x-ms-"))
@@ -25,7 +25,7 @@ namespace AzureQueueIssues
                 String.Join("", request.RequestUri.Segments) + "\n" +
                 String.Join("\n", queryStrings);
 
-            var contentLength = (request.Headers["Content-Length"] != null ? "0" : "");
+            var contentLength = (request.Headers["Content-Length"] != null ? request.Headers["Content-Length"] : contentLengthOverride);
 
             string stringToSign =
                 request.Method + "\n"
