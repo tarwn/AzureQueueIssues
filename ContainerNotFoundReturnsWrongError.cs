@@ -17,7 +17,7 @@ namespace AzureQueueIssues
     /// it seems reasonable that we would receive a Container Not Found error.
     /// 
     /// When we attempt a GetProperties we will get a ContainerNotFound error,
-    /// but when we attempt to acuire a lease we will get a BlobNotFoundError.
+    /// but when we attempt to acquire a lease we will get a BlobNotFoundError.
     /// 
     /// https://msdn.microsoft.com/en-us/library/azure/dd179439.aspx
     ///    
@@ -189,7 +189,7 @@ namespace AzureQueueIssues
 
         /// <summary>
         /// Emulator: Returns 404 Container Not Found (multiple API versions)
-        /// Azure API: Returns 404 Container Not Found (multiple API versions)
+        /// Azure API: Returns 404 Blob Not Found (multiple API versions)
         /// </summary>
         [TestCase("2012-02-12")]
         [TestCase("2013-08-15")]
