@@ -17,7 +17,7 @@ namespace AzureQueueIssues
     /// it seems reasonable that we would receive a Container Not Found error.
     /// 
     /// When we attempt a GetProperties we will get a ContainerNotFound error,
-    /// but when we attempt to acuire a lease we will get a BlobNotFoundError.
+    /// but when we attempt to acquire a lease we will get a BlobNotFoundError.
     /// 
     /// https://msdn.microsoft.com/en-us/library/azure/dd179439.aspx
     ///    
