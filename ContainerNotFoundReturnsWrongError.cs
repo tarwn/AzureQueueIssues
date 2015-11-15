@@ -160,7 +160,7 @@ namespace AzureQueueIssues
 
         /// <summary>
         /// Emulator: Returns 404 Container Not Found (tested with 3.3 and other versions)
-        /// Azure API: Returns 404 Container Not Found (tested with 3.3 and other versions)
+        /// Azure API: Returns 404 Blob Not Found (tested with 3.3 and other versions)
         /// </summary>
         [Test]
         public void AcquireLease_NonExistentContainer_ReturnsContainerNotFoundError()
@@ -189,7 +189,7 @@ namespace AzureQueueIssues
 
         /// <summary>
         /// Emulator: Returns 404 Container Not Found (multiple API versions)
-        /// Azure API: Returns 404 Container Not Found (multiple API versions)
+        /// Azure API: Returns 404 Blob Not Found (multiple API versions)
         /// </summary>
         [TestCase("2012-02-12")]
         [TestCase("2013-08-15")]
