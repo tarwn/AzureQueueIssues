@@ -1,4 +1,4 @@
-﻿using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
 using NUnit.Framework;
 using System;
@@ -25,6 +25,9 @@ namespace AzureQueueIssues
 
         //const string TargetApiVersion = "2012-02-12";
         const string TargetApiVersion = "2014-02-14";
+
+        // Some auth versions expect empty string, some expect 0
+        const string OverrideStringForZeroContentSize = "0";
 
 		const HttpStatusCode Status_SuccessfulUpdate = HttpStatusCode.NoContent;
 
@@ -108,6 +111,56 @@ namespace AzureQueueIssues
 			Assert.AreEqual(Error_PopReceiptMismatchMessage, status);
 			Assert.AreEqual(ErrorCode_PopReceiptMismatch, statusCode);
 		}
+        
+        /// <summary>
+        /// Verify using DeleteMessage with an out of date PopReceipt also returns a 404 error instead of the expected 400 error
+        /// </summary>
+        [Test]
+        public void DeleteMessage_UsingIncorrectPopReceipt_Returns400PopReceiptMismatch()
+        {
+            // Create the queue client
+            var queueClient = _account.CreateCloudQueueClient();
+
+            // Retrieve a reference to a queue
+            var queue = queueClient.GetQueueReference("unit-test" + Guid.NewGuid().ToString());
+            queue.CreateIfNotExists();
+            queue.Clear();
+
+            // let's queue up a sample message
+            var message = new CloudQueueMessage("test content");
+            // note the unecessary difference in terminology between API (Put) and reference SDK (Add)
+            queue.AddMessage(message);
+
+            // now we get the item and violate the first Get's popreceipt
+            var queueMessage1 = queue.GetMessage(TimeSpan.FromSeconds(1));
+            Thread.Sleep(TimeSpan.FromSeconds(2));
+            var queueMessage2 = queue.GetMessage(TimeSpan.FromSeconds(60));
+            // and just to be absolutely clear that we didn't get the same receipt a second time
+            Assert.AreNotEqual(queueMessage1.PopReceipt, queueMessage2.PopReceipt);
+
+            // now lets harvest the error from using the first popreceipt
+            int statusCode = -1;
+            string status = "not defined";
+            try
+            {
+                queue.DeleteMessage(queueMessage1);
+            }
+            catch (StorageException exc)
+            {
+                statusCode = exc.RequestInformation.HttpStatusCode;
+                status = exc.RequestInformation.HttpStatusMessage;
+            }
+
+            // prove that the item is still valid and it was definately a popreceipt mismatch
+            queue.DeleteMessage(queueMessage2);
+
+            //cleanup
+            queue.Delete();
+
+            // documented response
+            Assert.AreEqual(Error_PopReceiptMismatchMessage, status);
+            Assert.AreEqual(ErrorCode_PopReceiptMismatch, statusCode);
+        }
 
 		/// <summary>
 		/// One succesful test to show my manual REST update works properly
@@ -133,14 +186,14 @@ namespace AzureQueueIssues
 
 			// prove I know what I'm doing
 			var status = HttpStatusCode.NotImplemented;
-			try
-			{
-				var request = GenerateRequestForUpdate(_account, queueName, queueMessage.Id, queueMessage.PopReceipt, 60);
-				using (var response = (HttpWebResponse)request.GetResponse())
-				{
-					status = response.StatusCode;
-				}
-			}
+            try
+            {
+                var request = GenerateRequestForUpdate(_account, queueName, queueMessage.Id, queueMessage.PopReceipt, 60);
+                using (var response = (HttpWebResponse)request.GetResponse())
+                {
+                    status = response.StatusCode;
+                }
+            }
 			finally
 			{
 				//cleanup
@@ -342,7 +395,7 @@ namespace AzureQueueIssues
 			request.Headers.Add("x-ms-version", TargetApiVersion);
 			request.Headers.Add("x-ms-date", DateTime.UtcNow.ToString("R", CultureInfo.InvariantCulture));
 			request.Headers.Add("Authorization", "SharedKey " + account.Credentials.AccountName + ":"
-				+ SharedKey.Get(request, account.Credentials.AccountName, account.Credentials.ExportKey(), queryStringValues));
+                + SharedKey.Get(request, account.Credentials.AccountName, account.Credentials.ExportKey(), queryStringValues, OverrideStringForZeroContentSize));
 			return request;
 		}
 
